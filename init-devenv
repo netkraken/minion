@@ -1,15 +1,36 @@
 #!/bin/bash
 set -e -E -u
 
-case $(lsb_release -is) in
+VERSION=$(lsb_release -is)
+echo "setting up development environment for $VERSION"
+VENV=venv
+echo "virtualenv dir is $VENV"
+
+case $VERSION in
     ManjaroLinux)
-        virtualenv venv
-        set +u
-        source venv/bin/activate
-        set -u
-        pip install pybuilder
-        pyb install_dependencies
-        (cd venv/bin; ln -sf ../../src/main/scripts/* .)
-        (cd venv/lib/python*/site-packages; ln -sf ../../../../src/main/python/* .)
+        sudo pacman -S python-virtualenv
+        ;;
+    Ubuntu)
+        virtualenv --version > /dev/null 2>&1 || sudo apt-get install virtualenv
+        ;;
+    *)
+        echo "unkonwn linux version $VERSION"
+        exit 1
         ;;
 esac
+
+rm -rf $VENV
+virtualenv $VENV
+set +u
+source $VENV/bin/activate
+set -u
+
+pip install pybuilder
+pyb install_dependencies
+
+(cd $VENV/bin; ln -sf ../../src/main/scripts/* .)
+(cd $VENV/lib/python*/site-packages; ln -sf ../../../../src/main/python/* .)
+
+pyb -X
+
+echo "done."
