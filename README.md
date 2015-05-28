@@ -1,4 +1,4 @@
-![a kraken](https://raw.githubusercontent.com/arnehilmann/netkraken/master/res/octopus.png)
+![a kraken](https://raw.githubusercontent.com/netkraken/minion/master/res/octopus.png)
 
 # netkraken
 
