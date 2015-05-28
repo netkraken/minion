@@ -7,3 +7,5 @@
 
 gather network data, a connections kraken
 
+fetches and aggregates network connections on a host
+
