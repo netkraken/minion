@@ -2,8 +2,8 @@
 
 # netkraken
 
-[![Build Status](https://travis-ci.org/arnehilmann/netkraken.svg?branch=master)](https://travis-ci.org/arnehilmann/netkraken)
-[![Coverage Status](https://coveralls.io/repos/arnehilmann/netkraken/badge.svg)](https://coveralls.io/r/arnehilmann/netkraken)
+[![Build Status](https://api.travis-ci.org/netkraken/minion.svg?branch=master)](https://travis-ci.org/netkraken/minion)
+[![Coverage Status](https://coveralls.io/repos/netkraken/minion/badge.svg)](https://coveralls.io/r/netkraken/minion)
 
 gather network data, a connections kraken
 
