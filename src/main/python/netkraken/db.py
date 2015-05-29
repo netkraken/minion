@@ -62,24 +62,24 @@ class Aggregator(object):
     def aggregate(self):
         for filename in sorted(glob.glob(os.path.join(settings["stagedir"], "*")), key=len, reverse=True):
             level, timestamp = get_timestamp(filename)
-            print("stage: %s [%s]" % (filename, level))
+            # print("stage: %s [%s]" % (filename, level))
 
             if self.is_current(level, timestamp):
-                print("\tis current, ignoring for now")
+                # print("\tis current, ignoring for now")
                 continue
 
             if self.is_too_old(level, timestamp):
-                print("\ttoo old, ignoring")
+                # print("\ttoo old, ignoring")
                 self.remove(filename)
                 continue
 
             higher_level, higher_timestamp = get_higher_timestamp(filename)
-            print("\thigher level: %s [%s]" % (higher_timestamp, higher_level))
+            # print("\thigher level: %s [%s]" % (higher_timestamp, higher_level))
             if not higher_level:
                 continue
 
             if self.is_finalized(higher_timestamp):
-                print("\t%s slot %s already finalized, ignoring" % (higher_level, higher_timestamp))
+                # print("\t%s slot %s already finalized, ignoring" % (higher_level, higher_timestamp))
                 self.remove(filename)
                 continue
 
@@ -89,14 +89,14 @@ class Aggregator(object):
 
         for filename in sorted(glob.glob(os.path.join(settings["finaldir"], "*"))):
             level, timestamp = get_timestamp(filename)
-            print("final: %s [%s]" % (filename, level))
+            # print("final: %s [%s]" % (filename, level))
             if self.is_too_old(level, timestamp):
-                print("\ttoo old, removing")
+                # print("\ttoo old, removing")
                 self.remove(filename)
 
     def finalize(self, filename):
         final_filename = get_final_filename(filename)
-        print("\tfinalize %s -> %s" % (filename, final_filename))
+        # print("\tfinalize %s -> %s" % (filename, final_filename))
         # use finalize() on CountDB
         makedirs(final_filename)
         # shutil.move(filename, final_filename)
@@ -105,7 +105,7 @@ class Aggregator(object):
 
     def aggregate_file(self, filename, timestamp):
         higher_stage_filename = get_stage_filename(timestamp)
-        print("\taggregating in %s" % higher_stage_filename)
+        # print("\taggregating in %s" % higher_stage_filename)
         with CountDB.open_for_extending(higher_stage_filename) as aggregated_db:
             with CountDB.open(filename) as db:
                 aggregated_db.extend(db)
@@ -124,6 +124,6 @@ class Aggregator(object):
         return os.path.exists(higher_final_filename)
 
     def remove(self, filename):
-        print("\tremoving")
+        # print("\tremoving")
         shutil.move(filename, os.path.join("/tmp", os.path.basename(filename)))
         # os.remove(filename)
