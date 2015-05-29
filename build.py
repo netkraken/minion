@@ -16,6 +16,7 @@ default_task = "publish"
 @init
 def set_properties(project):
     project.build_depends_on("mock")
+    project.depends_on("docopt")
 
     project.set_property("flake8_verbose_output", True)
     project.set_property("flake8_break_build", True)
