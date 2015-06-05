@@ -5,7 +5,7 @@ from mock import patch, MagicMock, mock_open, call
 
 import netkraken
 from netkraken.db import Fetcher, Aggregator
-import counterdb
+import countdb
 
 
 class NetKrakenTests(unittest.TestCase):
@@ -34,11 +34,11 @@ ESTAB      0      0                            localhost:55982                  
 CLOSE-WAIT 38     0                                  foo:49159                               bar:https
 CLOSE-WAIT 58     0                                  foo:49154                               bar:https
 """, None)
-        counterdb.makedirs = MagicMock(name="makedirs")
+        countdb.makedirs = MagicMock(name="makedirs")
 
         f = Fetcher()
         m = mock_open()
-        with patch("counterdb.CountDB._open_file", m, create=True):
+        with patch("countdb.CountDB._open_file", m, create=True):
             f.fetch()
 
         m.assert_has_calls([call().write('"foo bar https"')])
@@ -46,11 +46,11 @@ CLOSE-WAIT 58     0                                  foo:49154                  
 
     @patch("glob.glob")
     def test_aggregate(self, globglob):
-        netkraken.db.print = netkraken.db.makedirs = counterdb.makedirs = MagicMock()
+        netkraken.db.print = netkraken.db.makedirs = countdb.makedirs = MagicMock()
         globglob.return_value = ("2042-12-12T12:12", "2042-12-12T12:13")
 
         m = mock_open(read_data='{"counter": 13, "data": {"foo bar braz": 39, "ham egg mont": 13}}')
-        with patch("counterdb.CountDB._open_file", m, create=True):
+        with patch("countdb.CountDB._open_file", m, create=True):
             a = Aggregator()
 
             a.finalize = MagicMock()
