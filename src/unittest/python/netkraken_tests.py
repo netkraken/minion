@@ -11,6 +11,10 @@ from testhelper import myAssertDictEqual
 
 class NetKrakenTests(unittest.TestCase):
 
+    def setUp(self):
+        netkraken.settings["stagedir"] = "/stage"
+        netkraken.settings["finaldir"] = "/final"
+
     def test_get_timestamp(self):
         self.assertEquals(("minute", "2042-12-12T12:12"),
                           netkraken.get_timestamp("2042-12-12T12:12"))
@@ -30,6 +34,13 @@ class NetKrakenTests(unittest.TestCase):
         myAssertDictEqual({'day': '2042-12-12', 'hour': '2042-12-12T12', 'minute': '2042-12-12T12:12'},
                           netkraken.get_current_timestrings())
 
+        self.assertEqual("/stage/2042-12-12T12:12", netkraken.get_current_stage_filename())
+
+    def test_get_final_filename_with_full_path(self):
+        self.assertEqual("/final/aha", netkraken.get_final_filename("/stage/aha"))
+
+    def test_get_higher_timestamp_failed(self):
+        self.assertEqual((None, None), netkraken.get_higher_timestamp("2042-12-13"))
 
 if __name__ == "__main__":
     unittest.main()
