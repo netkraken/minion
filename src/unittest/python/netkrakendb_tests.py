@@ -33,6 +33,8 @@ CLOSE-WAIT 1      0                            localhost:42715                  
 ESTAB      0      0                            localhost:55982                         localhost:46221
 CLOSE-WAIT 38     0                                  foo:49159                               bar:https
 CLOSE-WAIT 58     0                                  foo:49154                               bar:https
+CLOSE-WAIT 58     0                                  foo:ssh                                 bar:https
+CLOSE-WAIT 58     0                                  foo:1234                                  *:*
 """, None)
         countdb.makedirs = MagicMock(name="makedirs")
 
@@ -47,16 +49,18 @@ CLOSE-WAIT 58     0                                  foo:49154                  
     @patch("glob.glob")
     def test_aggregate(self, globglob):
         netkraken.db.print = netkraken.db.makedirs = countdb.makedirs = MagicMock()
-        globglob.return_value = ("2042-12-12T12:12", "2042-12-12T12:13")
+        globglob.return_value = ("2000-01-01T01:01", "2042-12-12T12:12", "2042-12-12T12:13")
 
         m = mock_open(read_data='{"counter": 13, "data": {"foo bar braz": 39, "ham egg mont": 13}}')
         with patch("countdb.CountDB._open_file", m, create=True):
             a = Aggregator()
 
             a.finalize = MagicMock()
+            a.remove = MagicMock()
             a.aggregate()
 
             a.finalize.assert_has_calls([call("2042-12-12T12:12"), call("2042-12-12T12:13")])
+            a.remove.assert_has_calls([call("2000-01-01T01:01"), call("2000-01-01T01:01")])
 
 
 if __name__ == "__main__":
