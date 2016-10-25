@@ -1,20 +1,23 @@
 #!/bin/bash
 set -e -E -u
 
-VERSION=$(lsb_release -is)
+VERSION=$(lsb_release -is 2> /dev/null || uname)
 echo "setting up development environment for $VERSION"
 VENV=venv
 echo "virtualenv dir is $VENV"
 
 case $VERSION in
     ManjaroLinux)
-        sudo pacman -S python-virtualenv
+        virtualenv --version > /dev/null 2>&1 || sudo pacman -S python-virtualenv
         ;;
     Ubuntu)
         virtualenv --version > /dev/null 2>&1 || sudo apt-get install virtualenv
         ;;
+    Darwin)
+        virtualenv --version > /dev/null 2>&1 || brew install pyenv-virtualenv
+        ;;
     *)
-        echo "unkonwn linux version $VERSION"
+        echo "unkonwn system $VERSION"
         exit 1
         ;;
 esac
