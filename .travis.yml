@@ -5,11 +5,12 @@ python:
   - 2.7
   - 3.3
   - 3.4
+  - 3.5
   - pypy
 install:
   - pip install pybuilder
   - pyb install_dependencies
-script: "pyb -X && PYTHONPATH=src/main/python src/main/scripts/netconns"
+script: "pyb -X && PYTHONPATH=src/main/python src/main/scripts/netconns & NETCONNS_PID=$! && sleep 20 && kill $NETCONNS_PID"
 after_success:
   - pip install coveralls
   - coveralls --verbose
