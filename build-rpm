@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e -E -u
+
+deactivate 2> /dev/null || :
+
+rm -f target/python-*.rpm
+fpm -s python -t rpm -f -p target/ --iteration $(git reflog --oneline | wc -l) --epoch 0 target/dist/*/
