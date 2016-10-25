@@ -8,8 +8,8 @@ python:
   - pypy
 install:
   - pip install pybuilder
-  - pip install coveralls
   - pyb install_dependencies
-script: "pyb -X && PYTHONPATH=src/main/python src/main/scripts/record-connections"
+script: "pyb -X && PYTHONPATH=src/main/python src/main/scripts/netconns"
 after_success:
+  - pip install coveralls
   - coveralls --verbose
