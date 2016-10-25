@@ -16,6 +16,9 @@ case $VERSION in
     Darwin)
         virtualenv --version > /dev/null 2>&1 || brew install pyenv-virtualenv
         ;;
+    Linux)
+        virtualenv --version > /dev/null 2>&1 || sudo yum install python-virtualenv
+	;;
     *)
         echo "unkonwn system $VERSION"
         exit 1
