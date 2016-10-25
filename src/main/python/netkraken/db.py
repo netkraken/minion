@@ -5,7 +5,8 @@ from datetime import datetime
 import glob
 import os
 import shutil
-import subprocess
+
+import psutil
 
 from netkraken import (settings,
                        formats,
@@ -24,31 +25,36 @@ class Fetcher(object):
         self.filename = get_stage_filename(self.timestamp)
 
     def fetch(self):
+        counted = 0
         with CountDB.open_for_counting(self.filename) as db:
-            ssp = subprocess.Popen(["ss", "-t4ar"], stdout=subprocess.PIPE)
-            stdout, _ = ssp.communicate()
-            listening = set()
-            for line in stdout.splitlines()[1:]:
-                state, recv, send, local, foreign = line.split()
-                local_host, local_port = local.split(b':')
-                if state == "LISTEN":
-                    listening.add(local_port)
+            connections = psutil.net_connections()
+
+            listening = set([connection.laddr[1] for connection in connections
+                             if connection.status == psutil.CONN_LISTEN])
+
+            for connection in connections:
+                if connection.status in (psutil.CONN_NONE, psutil.CONN_LISTEN):
                     continue
+                local_host, local_port = connection.laddr
                 if local_port in listening:
                     continue  # ignore incoming connections completely
-                    # source = foreign
-                    # target = local
-                else:
-                    source = local
-                    target = foreign
-                source_host, source_port = source.split(b':')
-                target_host, target_port = target.split(b':')
-                if b'*' in source_host or b'*' in target_host:
-                    continue
-                if source_host.startswith(b"localhost") and target_host.startswith(b"localhost"):
-                    continue
-                connection = b" ".join((source_host, target_host, target_port))
-                db.count(connection.decode('UTF-8'))
+                source = connection.laddr
+                target = connection.raddr
+
+                try:
+                    # import socket
+                    # source_host = socket.gethostbyaddr(source[0])[0]
+                    # target_host = socket.gethostbyaddr(target[0])[0]
+                    source_host = source[0]
+                    target_host = target[0]
+                    if source_host in ("127.0.0.1") or target_host in ("127.0.0.1"):
+                        continue
+                    db.count(" ".join([source_host, target_host, str(target[1])]))
+                    counted += 1
+                except:
+                    print("ERROR parsing: %s" % str(connection))
+                    raise
+        print("%i connections counted" % counted)
 
     def dump(self):
         with CountDB.open(self.filename) as db:
@@ -96,7 +102,7 @@ class Aggregator(object):
 
     def finalize(self, filename):
         final_filename = get_final_filename(filename)
-        # print("\tfinalize %s -> %s" % (filename, final_filename))
+        # print("finalize %s -> %s" % (filename, final_filename))
         # use finalize() on CountDB
         makedirs(final_filename)
         # shutil.move(filename, final_filename)
@@ -105,7 +111,7 @@ class Aggregator(object):
 
     def aggregate_file(self, filename, timestamp):
         higher_stage_filename = get_stage_filename(timestamp)
-        # print("\taggregating in %s" % higher_stage_filename)
+        # print("aggregating in %s" % higher_stage_filename)
         with CountDB.open_for_extending(higher_stage_filename) as aggregated_db:
             with CountDB.open(filename) as db:
                 aggregated_db.extend(db)

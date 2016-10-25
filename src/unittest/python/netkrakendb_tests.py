@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+from collections import namedtuple
+
 import unittest
 from mock import patch, MagicMock, mock_open, call
 
@@ -17,34 +19,23 @@ class NetKrakenTests(unittest.TestCase):
                                     'minute': '2042-12-12T12:12',
                                     'hour': '2042-12-12T12'}
 
-    @patch("subprocess.Popen")
+    @patch("psutil.net_connections")
     @patch("netkraken.db.get_current_timestrings")
-    def test_fetch(self, current_timestrings, popen):
+    def test_fetch(self, current_timestrings, net_connections):
         current_timestrings.return_value = self.current_timestrings
-        popen.return_value = MagicMock()
-        popen.return_value.communicate = MagicMock(name="communicate")
-        popen.return_value.communicate.return_value = (b"""State      Recv-Q Send-Q                   Local Address:Port                       Peer Address:Port
-LISTEN     0      80                           localhost:mysql                                 *:*
-LISTEN     0      128                          localhost:4243                                  *:*
-LISTEN     0      128                                  *:ssh                                   *:*
-LISTEN     0      128                                  *:rpc.status                               *:*
-ESTAB      0      0                            localhost:46221                         localhost:55982
-CLOSE-WAIT 1      0                            localhost:42715                         localhost:38422
-ESTAB      0      0                            localhost:55982                         localhost:46221
-CLOSE-WAIT 38     0                                  foo:49159                               bar:https
-CLOSE-WAIT 58     0                                  foo:49154                               bar:https
-CLOSE-WAIT 58     0                                  foo:ssh                                 bar:https
-CLOSE-WAIT 58     0                                  foo:1234                                  *:*
-""", None)
+        Connection = namedtuple("sconn", "laddr raddr status pid")
+        net_connections.return_value = [
+            Connection(laddr=('bar', 443), raddr=(), status='LISTEN', pid=55424),
+            Connection(laddr=('foo', 12345), raddr=('bar', 443), status='ESTABLISHED', pid=1),
+            Connection(laddr=('127.0.0.1', 50314), raddr=('127.0.0.1', 54283), status='ESTABLISHED', pid=55424),
+            Connection(laddr=('127.0.0.1', 54283), raddr=('127.0.0.1', 50314), status='ESTABLISHED', pid=55386)]
         countdb.makedirs = MagicMock(name="makedirs")
 
         f = Fetcher()
         m = mock_open()
         with patch("countdb.CountDB._open_file", m, create=True):
             f.fetch()
-
-        m.assert_has_calls([call().write('"foo bar https"')])
-        # self.assertEquals("dump me the call stack NOW!", m.mock_calls)
+        m.assert_has_calls([call().write('"foo bar 443"')])
 
     @patch("glob.glob")
     def test_aggregate(self, globglob):
