@@ -27,7 +27,7 @@ class Fetcher(object):
     def fetch(self):
         counted = 0
         with CountDB.open_for_counting(self.filename) as db:
-            connections = psutil.net_connections()
+            connections = psutil.net_connections(kind="inet4")
 
             listening = set([connection.laddr[1] for connection in connections
                              if connection.status == psutil.CONN_LISTEN])
