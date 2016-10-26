@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# chkconfig: 345 80 20
+# description: netconnns service
+# processname: netconns
+
+USER=nobody
+COMMAND="/usr/bin/python /usr/bin/netconns"
+
+# -------- no no user serviceable parts beyond this line --------
+
+. /etc/init.d/functions
+
+RETVAL=1
+PROG=$(basename $0)
+
+get_pid() {
+	ps aux | sed -n "s%^$USER  *\([^ ]*\)  *.* $COMMAND\$%\\1%;T;p"
+}
+
+start() {
+	PID=$(get_pid)
+	if [[ -n $PID ]]; then
+		echo -n "$PROG: already started, running with pid $PID "
+		RETVAL=0 && return
+	fi
+		
+        daemon --user $USER "$COMMAND < /dev/null > /tmp/$PROG.stdout 2> /tmp/$PROG.stderr &"
+        echo -n "$PROG: starting"
+	
+	PID=$(get_pid)
+	[[ -n $PID ]] && echo -n ", running with pid $PID" && RETVAL=0
+}
+
+stop() {
+	PID=$(get_pid)
+	if [[ -z $PID ]]; then
+		echo -n "$PROG: already stopped"
+		RETVAL=0 && return
+	fi
+
+	echo -n "$PROG: stopping pid $PID"
+	kill $PID
+
+	PID=$(get_pid)
+	[[ -z $PID ]] && RETVAL=0
+}
+
+status() {
+	PID=$(get_pid)
+	if [[ -z $PID ]]; then
+		echo -n "$PROG: not running"
+	else
+		echo -n "$PROG: running with pid $PID"
+		RETVAL=0
+	fi
+}
+
+case "$1" in
+    start|stop|status)
+        $1
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: $PROG {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+
+[[ $RETVAL -eq 0 ]] && success || failure
+echo
+
+exit $RETVAL

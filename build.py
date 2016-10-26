@@ -7,6 +7,7 @@ use_plugin("python.flake8")
 use_plugin("python.frosted")
 use_plugin("python.coverage")
 use_plugin("python.distutils")
+use_plugin("copy_resources")
 
 
 name = "netkraken-minion"
@@ -27,3 +28,8 @@ def set_properties(project):
 
     project.set_property("flake8_verbose_output", True)
     project.set_property("flake8_break_build", True)
+
+    project.set_property('copy_resources_target', '$dir_dist')
+    project.get_property('copy_resources_glob').extend(['docroot/etc/init.d/netconns'])
+
+    project.install_file('/etc/init.d/', 'docroot/etc/init.d/netconns')
