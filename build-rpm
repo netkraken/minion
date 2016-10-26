@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e -E -u
 
-deactivate 2> /dev/null || :
+which python | grep -q venv && { echo "inside virtualenv, aborting now!"; exit 1; }
+[[ -d target/dist ]] || { echo "no target/dist dir?! run 'pyb' before, aborting now!"; exit 2; }
 
 rm -f target/python-*.rpm
 fpm -s python -t rpm -f -p target/ --iteration $(git reflog --oneline | wc -l) --epoch 0 target/dist/*/
