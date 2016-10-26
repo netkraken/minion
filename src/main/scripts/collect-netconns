@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+from __future__ import print_function
+
+import json
+import os
+
+final_dir = "/tmp/netconns/final"
+
+result = {}
+for f in os.listdir(final_dir):
+	with open(os.path.join(final_dir, f)) as data_file:
+		data = json.load(data_file)
+		result[f] = data
+
+print(result)
