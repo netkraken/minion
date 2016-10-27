@@ -6,7 +6,8 @@ import logging.handlers
 import sys
 import time
 
-from netkraken.db import Fetcher, Aggregator
+from netkraken.db import fetch
+from countdb.aggregators import TimeAggregator
 
 measurements_per_minute = 3
 
@@ -35,18 +36,20 @@ class MyLogger(object):
 sys.stdout = MyLogger(logger, logging.INFO)
 sys.stderr = MyLogger(logger, logging.ERROR)
 
-aggregator = Aggregator()
 
 intervall_seconds = 60 / measurements_per_minute
 
 print("starting to record connections")
 print("measurements per minute: %i" % measurements_per_minute)
 
+aggregator = TimeAggregator()
+
 while True:
     to_sleep = intervall_seconds - (time.time() % intervall_seconds)
     time.sleep(to_sleep)
 
     print("fetching net connections")
-    cf = Fetcher()
-    cf.fetch()
+    with aggregator.create_counter_now() as db:
+        fetch(db)
+
     aggregator.aggregate()
